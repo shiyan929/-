@@ -45,31 +45,30 @@ D.emis_h    = 0.80;      % 表面发射率，热端
 D.emis_c    = 0.80;      % 表面发射率，冷端
 D.k_pillar  = 4.0;       % 桥柱材料导热系数
 D.phi       = 0.00;      % 桥柱面积
-%% ---------------- derived gas / radiation properties --------------------
+%% 辐射属性
 Tf      = 0.5*(D.Th + D.Tc);
-kg0     = air_k(Tf);
-beta    = (2-D.alpha)/D.alpha * (2*D.gamma/(D.gamma+1)) / D.Pr;
-eps_eff = 1/(1/D.emis_h + 1/D.emis_c - 1);
-h_rad   = eps_eff * C.sigma * (D.Th+D.Tc)*(D.Th^2+D.Tc^2);
-lam_atm = C.kB*Tf/(sqrt(2)*pi*D.d_mol^2*C.p_atm);
+kg0     = air_k(Tf);     %计算空气导热系数
+beta    = (2-D.alpha)/D.alpha * (2*D.gamma/(D.gamma+1)) / D.Pr;   % 温度跳跃系数
+eps_eff = 1/(1/D.emis_h + 1/D.emis_c - 1);     % 两平行板的有效发射率
+h_rad   = eps_eff * C.sigma * (D.Th+D.Tc)*(D.Th^2+D.Tc^2);   % 辐射导热系数
+lam_atm = C.kB*Tf/(sqrt(2)*pi*D.d_mol^2*C.p_atm);   %标准大气压下的平均自由程
 
-fprintf('================ BASELINE ================\n');
-fprintf('film temperature             Tf      = %9.2f K\n',  Tf);
-fprintf('bulk gas conductivity        kg0     = %9.5f W/(m*K)\n', kg0);
-fprintf('temperature-jump coefficient beta    = %9.4f\n', beta);
-fprintf('mean free path @ 1 atm               = %9.2f nm\n', lam_atm*1e9);
-fprintf('effective emissivity         eps_eff = %9.4f\n', eps_eff);
-fprintf('radiation conductance        h_rad   = %9.3f W/(m^2*K)\n', h_rad);
-fprintf('plate resistance (both)      R_p     = %9.3e m^2*K/W\n', ...
+fprintf('膜温度             Tf      = %9.2f K\n',  Tf);
+fprintf('空气本体导热系数   kg0     = %9.5f W/(m*K)\n', kg0);
+fprintf('温度跳跃系数       beta    = %9.4f\n', beta);
+fprintf('平均自由程 @1atm   lam     = %9.2f nm\n', lam_atm*1e9);
+fprintf('有效发射率         eps_eff = %9.4f\n', eps_eff);
+fprintf('辐射导热系数       h_rad   = %9.3f W/(m^2*K)\n', h_rad);
+fprintf('总热阻（双板）     R_p     = %9.3e m^2*K/W\n', ...
         2*D.t_plate/D.k_mullite);
-fprintf('bare mullite (no gap)        k       = %9.3f W/(m*K)\n\n', ...
+fprintf('莫来石导热系数     k       = %9.3f W/(m*K)\n\n', ...
         D.k_mullite);
 
 %% ========================================================================
-%  FIG 1 -- universal rarefaction curve  k_gas_eff/k_gas0 vs Kn
+%  FIG 1 稀薄气体通用曲线 k_gas_eff/k_gas0 vs Kn
 %% ========================================================================
-Kn_v  = logspace(-3, 2, 400);
-ratio = 1 ./ (1 + 2*beta*Kn_v);
+Kn_v  = logspace(-3, 2, 400);   %从0.001~100，生成400个对数等分点
+ratio = 1 ./ (1 + 2*beta*Kn_v);     %计算有效气体导热
 
 f1 = figure('Visible','off','Position',[80 80 820 560]);
 semilogx(Kn_v, ratio, 'LineWidth', 2); grid on; hold on;
@@ -88,7 +87,7 @@ exportgraphics(f1, fullfile(outdir,'fig1_rarefaction_curve.png'), 'Resolution',1
 close(f1);
 
 %% ========================================================================
-%  FIG 2 -- k_stack vs gap thickness for several pressures
+%  FIG 2 -- k_stack（等效导热系数） vs 不同压力下，不同间隙厚度
 %% ========================================================================
 d_vec = logspace(-7, -2, 400);                 % 0.1 um .. 10 mm
 P_set = [100 1000 1e4 C.p_atm];                % Pa
@@ -139,7 +138,7 @@ exportgraphics(f3, fullfile(outdir,'fig3_design_map.png'), 'Resolution',150);
 close(f3);
 
 %% ========================================================================
-%  FIG 4 -- mechanism breakdown at P = 1000 Pa
+%  FIG 4 -- 传热机制分析
 %% ========================================================================
 P_fix = 1000;
 rb = model_stack(d_vec, P_fix, D, C, kg0, beta, h_rad);
