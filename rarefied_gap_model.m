@@ -111,12 +111,12 @@ exportgraphics(f2, fullfile(outdir,'fig2_kstack_vs_gap.png'), 'Resolution',150);
 close(f2);
 
 %% ========================================================================
-%  FIG 3 -- 2D design map  k_stack(d, P)  with Kn contours
+%  FIG 3 -- 等效热导系数和Kn等值线
 %% ========================================================================
-d2 = logspace(-7, -2, 240);
-P2 = logspace(0, 5.2, 200);
+d2 = logspace(-7, -2, 240);   %间隙厚度步长
+P2 = logspace(0, 5.2, 200);   %压力步长
 [DD, PP] = meshgrid(d2, P2);
-R2 = model_stack(DD, PP, D, C, kg0, beta, h_rad);
+R2 = model_stack(DD, PP, D, C, kg0, beta, h_rad);    %对每个点进行计算
 
 f3 = figure('Visible','off','Position',[80 60 980 720]);
 contourf(log10(DD), log10(PP), log10(R2.k_stack), 28, 'LineColor','none');
@@ -140,7 +140,7 @@ close(f3);
 %% ========================================================================
 %  FIG 4 -- 传热机制分析
 %% ========================================================================
-P_fix = 1000;
+P_fix = 1000;    %恒定压力
 rb = model_stack(d_vec, P_fix, D, C, kg0, beta, h_rad);
 
 f4 = figure('Visible','off','Position',[80 80 900 600]);
@@ -156,12 +156,11 @@ exportgraphics(f4, fullfile(outdir,'fig4_mechanism_breakdown.png'), 'Resolution'
 close(f4);
 
 %% ========================================================================
-%  FIG 5 -- effect of mullite plate thickness
+%  FIG 5 -- 莫来石厚度敏感性
 %% ========================================================================
-t_set = logspace(-4, -2.3, 40);               % 0.1 mm .. 5 mm
-d_des = 20e-6;                                 % design gap 20 um
-P_des = 1000;                                  % design pressure 1000 Pa
-
+t_set = logspace(-4, -2.3, 40);               %对数点设计
+d_des = 20e-6;                                 %设计间隙
+P_des = 1000;                                  % 压力设计
 k_t = zeros(size(t_set));
 for i = 1:numel(t_set)
     Dz = D; Dz.t_plate = t_set(i);
@@ -212,7 +211,7 @@ fprintf('Figures + CSV written to: %s\n', outdir);
 fprintf('================ DONE ================\n');
 
 %% ========================================================================
-%  LOCAL FUNCTIONS
+%  保存图片
 %% ========================================================================
 function k = air_k(T)
 %AIR_K  Bulk thermal conductivity of air, power-law fit  [W/(m*K)]
